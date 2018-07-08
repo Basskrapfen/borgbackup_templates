@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Setting this, so the repo does not need to be given on the commandline:
 export BORG_REPO=<path to repository, local or ssh>
@@ -13,6 +13,17 @@ NAME='{hostname}'
 
 # List off all directories to backup
 SOURCES='/home'
+
+# List of excludes, beware of the borgbackup pattern, path to a directory ending with a path separator are included as empty
+EXCLUDES=(
+    '/home/*/.cache/'
+    )
+
+## END OF CONFIGURATION AREA ##
+
+for i in "${EXCLUDES[@]}"; do
+    EXCLUDE_LIST="${EXCLUDE_LIST} -e $i"
+done
 
 # some helpers and error handling:
 info() { printf "\n%s %s\n\n" "$( date )" "$*" >&2; }
@@ -31,10 +42,7 @@ borg create                         \
     --show-rc                       \
     --compression lz4               \
     --exclude-caches                \
-    --exclude '/home/*/.cache/*'    \
-    --exclude '/var/cache/*'        \
-    --exclude '/var/tmp/*'          \
-                                    \
+    "${EXCLUDE_LIST}"               \
     ::${NAME}'-{now}'               \
     $SOURCES
 
